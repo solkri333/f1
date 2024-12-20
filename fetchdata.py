@@ -105,19 +105,16 @@ def player(connection, playerid):
 def connect():
     try:
         # PostgreSQL connection string
-        connection = psycopg2.connect(
-            host="dpg-c8o0s6dskk8l0f4c0000-a.oregon-postgres.render.com",  # Remote host (Render's database URL)
-            port="5432",  # Default port
-            database="f1_n2bx",  # Your database name
-            user="root",  # Your PostgreSQL user
-            password="3K661l1VMQV5v5b2zQMor4KuH3xfYQ4S",  # Your PostgreSQL password
-            sslmode="require"  # SSL mode (Render requires SSL)
-        )
-
-        if connection:
-            logging.info("Connected to PostgreSQL database")
+        try:
+        # External PostgreSQL connection URL
+            db_url = "postgresql://root:3K661l1VMQV5v5b2zQMor4KuH3xfYQ4S@dpg-cti8n1l2ng1s739f00og-a.oregon-postgres.render.com/f1_n2bx"
+            
+            # Connect directly using the URL
+            connection = psycopg2.connect(db_url, sslmode='require')
+            
+            logging.info(f"Successfully connected to PostgreSQL!")
             return connection
-        else:
+        except:
             raise Exception("Failed to connect to the database")
 
     except Error as e:

@@ -40,9 +40,15 @@ def rankings():
 
 @app.route('/year', methods=['GET'])
 def years():
-    connection=get_connection()
-    year=[years[0] for years in select_year(connection)]
-    return jsonify({'year':year})
+    try:
+        connection=get_connection()
+        print(connection)
+        print(f"YEARSSSSSSSSSSSSSSS {select_year(connection)}")
+        year=[years[0] for years in select_year(connection)]
+        print(year)
+        return jsonify({'year':year})
+    except Exception as e:
+        print(f"Error {e}")
 
 @app.route('/grandprix', methods=['POST'])
 def grandprix():
