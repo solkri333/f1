@@ -1,5 +1,5 @@
-import mysql.connector
-from mysql.connector import Error
+import psycopg2
+from psycopg2 import Error
 import warnings
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -10,7 +10,7 @@ def select_year(connection):
     cursor=None
     try:
         select_query=f"""
-            select distinct Year(date) from seasons;
+            SELECT DISTINCT EXTRACT(YEAR FROM date) AS year FROM seasons;
         """
         cursor=connection.cursor()
         cursor.execute(select_query)
@@ -30,7 +30,7 @@ def select_grandprix(year, connection):
     cursor=None
     try:
         select_query=f"""
-            select grandprix,seasonid from seasons where year(date)={year} order by date DESC;
+             SELECT grandprix, seasonid FROM seasons WHERE EXTRACT(YEAR FROM date) = {year} ORDER BY date DESC;
         """
         cursor=connection.cursor()
         cursor.execute(select_query)
@@ -50,11 +50,13 @@ def select_rank(seasonid, connection):
     try:
         #insert query
         select_query = f"""
-            select `rank`, p.name, c.img, laps, time, points, picture, t.img, t.name from 
-            players p inner join rankings r on p.playerid=r.playerid
-            inner join country c on p.country=c.name
-            inner join team t on p.team=t.name
-            where r.seasonid={seasonid} order by `rank` 
+            SELECT "rank", p.name, c.img, laps, time, points, picture, t.img, t.name 
+            FROM players p 
+            INNER JOIN rankings r ON p.playerid = r.playerid
+            INNER JOIN country c ON p.country = c.name
+            INNER JOIN team t ON p.team = t.name
+            WHERE r.seasonid = {seasonid}
+            ORDER BY "rank"; 
         """
         cursor = connection.cursor()
         cursor.execute(select_query)
@@ -78,10 +80,14 @@ def player(connection, playerid):
     cursor=None
     try:
         select_query=f"""
-            select name, country, team from players where playerid={playerid};
+            SELECT name, country, team FROM players WHERE playerid={playerid};
         """
         select_query2=f"""
-            select `rank`, grandprix, Year(date) from rankings r inner join seasons s on r.seasonid=s.seasonid where playerid={playerid} order by date
+            SELECT "rank", grandprix, EXTRACT(YEAR FROM date) AS year 
+            FROM rankings r 
+            INNER JOIN seasons s ON r.seasonid = s.seasonid 
+            WHERE playerid={playerid} 
+            ORDER BY date;
         """
         cursor=connection.cursor()
         cursor.execute(select_query)
@@ -98,27 +104,25 @@ def player(connection, playerid):
 
 def connect():
     try:
-        # Establish a database connection
-        connection = mysql.connector.connect(
-            host='localhost',
-            database='f1',
-            user='root',
-            password='12345@123455'
+        # PostgreSQL connection string
+        connection = psycopg2.connect(
+            host="dpg-c8o0s6dskk8l0f4c0000-a.oregon-postgres.render.com",  # Remote host (Render's database URL)
+            port="5432",  # Default port
+            database="f1_n2bx",  # Your database name
+            user="root",  # Your PostgreSQL user
+            password="3K661l1VMQV5v5b2zQMor4KuH3xfYQ4S",  # Your PostgreSQL password
+            sslmode="require"  # SSL mode (Render requires SSL)
         )
 
-        if connection.is_connected():
-            # print("Connected to the database")
-            # select_rank(4, connection)
-            # select_year(connection)
-            # select_grandprix(2024, connection)
+        if connection:
+            logging.info("Connected to PostgreSQL database")
             return connection
         else:
             raise Exception("Failed to connect to the database")
 
     except Error as e:
-        logging.error(f"Error while connecting to MySQL: {e}")
-        return f"Error while connecting to MySQL: {e}", 500
-
+        logging.error(f"Error while connecting to PostgreSQL: {e}")
+        return f"Error while connecting to PostgreSQL: {e}", 500
     except Exception as e:
-        logging.error(f"Error while connecting to MySQL: {e}")
-        return f"Error while connecting to MySQL: {e}", 500
+        logging.error(f"Error while connecting to PostgreSQL: {e}")
+        return f"Error while connecting to PostgreSQL: {e}", 500
