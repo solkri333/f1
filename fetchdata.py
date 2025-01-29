@@ -107,7 +107,7 @@ def connect():
         # PostgreSQL connection string
         try:
         # External PostgreSQL connection URL
-            db_url = "postgresql://root:3K661l1VMQV5v5b2zQMor4KuH3xfYQ4S@dpg-cti8n1l2ng1s739f00og-a.oregon-postgres.render.com/f1_n2bx"
+            db_url = "https://hfomsrbwzkaglkepnjpd.supabase.co"
             
             # Connect directly using the URL
             connection = psycopg2.connect(db_url, sslmode='require')
